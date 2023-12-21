@@ -37,16 +37,19 @@ stdenv.mkDerivation rec {
   # file; it uses prefix=$out; libdir=${prefix}/lib, which is wrong in
   # our case; libdir should really be set to the $lib output.
     preConfigure = ''
-      sed -i 's|/usr/local|$out|g' Makefile
+      substituteInPlace Makefile --replace '/usr/local' '$out'
+      substituteInPlace mkdep.c --replace '/usr/bin:/bin:/usr/local/bin' '$out'
+      echo "out directory: $out"
     '';
 
-    # Rest of your expression
     postInstall = ''
+      mkdir -p $out/bin
+      mkdir -p $out/share/man/man1
+
       # Move files to $out/bin
       mv $out/bin/bmkdep $out/bin/
 
       # Move man page to $out/share/man/man1
-      mkdir -p $out/share/man/man1
       mv $out/share/man/man1/bmkdep.1 $out/share/man/man1/
     '';
 
