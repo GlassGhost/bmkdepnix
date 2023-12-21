@@ -22,7 +22,7 @@ stdenv.mkDerivation rec {
     groff
     stdenv
   ];
-  enableParallelBuilding = false;
+  enableParallelBuilding = true;
   enableParallelInstalling = false;
 
   # note: build checks value of '$CC' to add some extra cflags, but we don't
@@ -32,19 +32,23 @@ stdenv.mkDerivation rec {
   # but the defaults work fine.
   makeFlags = [ ];
 
+
   # fix up multi-output install. we also have to fix the pkg-config libdir
   # file; it uses prefix=$out; libdir=${prefix}/lib, which is wrong in
   # our case; libdir should really be set to the $lib output.
-  postInstall = ''
+    preConfigure = ''
+      sed -i 's|/usr/local|$out|g' Makefile
+    '';
+
+    # Rest of your expression
+    postInstall = ''
       # Move files to $out/bin
       mv $out/bin/bmkdep $out/bin/
 
       # Move man page to $out/share/man/man1
       mkdir -p $out/share/man/man1
       mv $out/share/man/man1/bmkdep.1 $out/share/man/man1/
-  '';
-
-  outputs = [ "out" "lib" "dev" ];
+    '';
 
   meta = with lib; {
     description = "NetBSD version of mkdep";
