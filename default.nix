@@ -30,21 +30,18 @@ stdenv.mkDerivation rec {
   # if we use stdenv vs clangStdenv, we don't know which, and CC=cc in all
   # cases.) it's unclear exactly what should be done if we want those flags,
   # but the defaults work fine.
-  makeFlags = [ "-r" "PREFIX=$(out)" ];
+  makeFlags = [ ];
 
   # fix up multi-output install. we also have to fix the pkg-config libdir
   # file; it uses prefix=$out; libdir=${prefix}/lib, which is wrong in
   # our case; libdir should really be set to the $lib output.
   postInstall = ''
-    # Create necessary directories
-    mkdir -p $out/usr/local/bin
-    mkdir -p $out/usr/local/man/man1
+      # Move files to $out/bin
+      mv $out/bin/bmkdep $out/bin/
 
-    # Move files to /usr/local/bin
-    mv $out/bin/example-executable $out/usr/local/bin/
-
-    # Move man page to /usr/local/man/man1
-    mv $out/share/man/man1/example-man-page.1 $out/usr/local/man/man1/
+      # Move man page to $out/share/man/man1
+      mkdir -p $out/share/man/man1
+      mv $out/share/man/man1/bmkdep.1 $out/share/man/man1/
   '';
 
   outputs = [ "out" "lib" "dev" ];
