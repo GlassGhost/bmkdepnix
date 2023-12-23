@@ -1,3 +1,18 @@
+# nix-build -E '(import <nixpkgs> {}).callPackage ./. {}'
+# nix-env -i ./result
+# nix-env -q
+# nix-env --uninstall
+
+# bmkdep-f76db982a71c817423e0609ec9625e351e9e9e7d
+# nix-env -q --files bmkdep-f76db982a71c817423e0609ec9625e351e9e9e7d
+
+# nix-env -qa --installed bmkdep-f76db982a71c817423e0609ec9625e351e9e9e7d
+# nix-env --uninstall bmkdep-f76db982a71c817423e0609ec9625e351e9e9e7d
+
+# sudo nix-env -f '<nixpkgs>' -iA <package-name>
+
+# nix-env --uninstall bmkdep-f76db982a71c817423e0609ec9625e351e9e9e7d
+
 { lib
 , stdenv
 , fetchFromGitHub
@@ -37,20 +52,22 @@ stdenv.mkDerivation rec {
   # file; it uses prefix=$out; libdir=${prefix}/lib, which is wrong in
   # our case; libdir should really be set to the $lib output.
     preConfigure = ''
-      substituteInPlace Makefile --replace '/usr/local' '$out'
-      substituteInPlace mkdep.c --replace '/usr/bin:/bin:/usr/local/bin' '$out'
-      echo "out directory: $out"
+    mkdir -p $out/bin
+    mkdir -p $out/share/man/man1
+    substituteInPlace Makefile --replace "/man/man" "/man"
+    echo "out directory: $out"
     '';
 
+    installPhase = ''
+    bmake install PREFIX=$out
+    '';
+  
     postInstall = ''
-      mkdir -p $out/bin
-      mkdir -p $out/share/man/man1
+    # Move files to $out/bin
+    mv $out/bin/bmkdep $out/bin/
 
-      # Move files to $out/bin
-      mv $out/bin/bmkdep $out/bin/
-
-      # Move man page to $out/share/man/man1
-      mv $out/share/man/man1/bmkdep.1 $out/share/man/man1/
+    # Move man page to $out/share/man/man1
+    mv $out/share/man/man/bmkdep.1 $out/share/man/man1/
     '';
 
   meta = with lib; {
